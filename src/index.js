@@ -1,4 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import BasicLayout from './layout/layout';
 
-ReactDOM.render(<div>Hello World!</div>, document.getElementById('root'));
+ReactDOM.render(<BasicLayout></BasicLayout>, document.getElementById('root'));
