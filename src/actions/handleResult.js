@@ -25,18 +25,21 @@ function appendSearchRes(total, resultList) {
     }
   };
 }
-function appendClassRes(submenuTagName, resData) {
+function appendClassRes(name, submenuTagName, resData) {
+  // name = 'movie' / 'music' / 'book'
   return {
     type: APPEND_CLASS_RES,
+    name,
     data: {
       submenuTagName,
       resData
     }
   }
 }
-function getResultFailed(msg) {
+function getResultFailed(name, msg) {
   return {
     type: GET_RESULT_FAILED,
+    name,
     errMsg: msg
   }
 }
@@ -52,18 +55,19 @@ export function getSearchRes(menuTagName, url) {
   }
 }
 // 分类结果
-export function getClassRes() {
+export function getClassRes(name) {
+  // name = 'movie' / 'music' / 'book'
   return (dispatch, getState) => {
     if (_requestIsNeccessary(getState)) {
       let url = _getUrl(getState);
-      const currMenuTagName = getState().menusData.currMenuTagName;// 'movie' / 'music' / 'books'
+      const currMenuTagName = getState().menusData.currMenuTagName;// 'movie' / 'music' / 'book'
       const currSubmenuTagNames = getState().menusData.currSubmenuTagNames;// {movie: 'in_theaters', music: '华语', book: '小说'}
       const currSubmenuTagName = currSubmenuTagNames[currMenuTagName];
       // 请求数据
       return getResFunctions[currMenuTagName](url).then(resData => {
-        dispatch(appendClassRes(currSubmenuTagName, resData));// dispatch 一个 action
+        dispatch(appendClassRes(name, currSubmenuTagName, resData));// dispatch 一个 action
       }).catch(err => {
-        dispatch(getResultFailed(err));// dispatch 一个 action
+        dispatch(getResultFailed(name, err));// dispatch 一个 action
       })
     }
   }

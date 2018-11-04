@@ -76,13 +76,14 @@ class BasicLayout extends Component {
   handleMenuClick(event) {
     const menuTagName = event.key;// 一级标题的tagName
     this.props.selectMenu(menuTagName);// 同步 dispatch
-    this.props.getClassRes();// 异步 dispatch: 请求数据
+    this.props.getClassRes(menuTagName);// 异步 dispatch: 请求数据
   }
   // 二级菜单点击事件
   handleSubmenuClick(event) {
+    const menuTagName = this.props.menusData.menuTagName;
     const submenuTagName = event.key// 二级标题的tagName
     this.props.selectSubmenu(submenuTagName);// 同步 dispatch
-    this.props.getClassRes();// 异步 dispatch: 请求数据
+    this.props.getClassRes(menuTagName);// 异步 dispatch: 请求数据
   }
 }
 const mapStateToProps = state => {
@@ -94,7 +95,7 @@ const mapDispatchToProps = dispatch => {
   return {
     selectMenu: (key) => dispatch(selectMenu(key)),
     selectSubmenu: (key) => dispatch(selectSubmenu(key)),
-    getClassRes: () => dispatch(getClassRes())
+    getClassRes: (name) => dispatch(getClassRes(name))
   }
 }
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(BasicLayout));
