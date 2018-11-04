@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import {withRouter} from 'react-router-dom';
 // 自定义
 import {selectMenu, selectSubmenu} from '../../actions/menusData';
+import {getClassRes} from '../../actions/handleResult';
 import Dashboard from '../../components/dashboard/dashboard';
 // Header, Footer, Sider, Content组件只能放在Layout组件模块下
 const { Sider, Header, Content } = Layout;
@@ -32,7 +33,7 @@ class BasicLayout extends Component {
   render() {
     const menus = this.props.menusData.menus;
     const currMenuTagName = this.props.menusData.currMenuTagName;
-    const currSubmenuKeys = this.props.menusData.currSubmenuKeys;
+    const currSubmenuTagNames = this.props.menusData.currSubmenuTagNames;
     return (
       <div className="layout-container">
         <Layout style={{height: '100%'}}>
@@ -43,7 +44,7 @@ class BasicLayout extends Component {
           </Sider>
           <Layout>
             <Header theme="light" style={{ backgroundColor: '#d9d9d9' }}>
-              <Menu mode="horizontal" onClick={this.handleSubmenuClick} selectedKeys={currSubmenuKeys} style={{ backgroundColor: '#d9d9d9' }}>
+              <Menu mode="horizontal" onClick={this.handleSubmenuClick} selectedKeys={[currSubmenuTagNames[currMenuTagName]]} style={{ backgroundColor: '#d9d9d9' }}>
                 {this.getActiveSubmenus()}
               </Menu>
             </Header>
@@ -59,7 +60,6 @@ class BasicLayout extends Component {
   getActiveSubmenus() {
     const menus = this.props.menusData.menus;
     const currMenuTagName = this.props.menusData.currMenuTagName;
-    // const currSubmenus = this.props.menusData.currSubmenus;
     let submenus = null;
     for (let i = 0; i < menus.length; i++) {
       if (menus[i].tagName === currMenuTagName) {
@@ -68,19 +68,21 @@ class BasicLayout extends Component {
       }
     }
     if (submenus) {
-      return submenus.map(submenu => (<Item key={submenu.key}>{submenu.title}</Item>))
+      return submenus.map(submenu => (<Item key={submenu.tagName}>{submenu.title}</Item>))
     }
     return null;
   }
   // 一级菜单点击事件
   handleMenuClick(event) {
-    const key = event.key;// 一级标题的key
-    this.props.selectMenu(key);
+    const menuTagName = event.key;// 一级标题的tagName
+    this.props.selectMenu(menuTagName);// 同步 dispatch
+    this.props.getClassRes();// 异步 dispatch: 请求数据
   }
   // 二级菜单点击事件
   handleSubmenuClick(event) {
-    const key = event.key// 二级标题的key
-    this.props.selectSubmenu(key);
+    const submenuTagName = event.key// 二级标题的tagName
+    this.props.selectSubmenu(submenuTagName);// 同步 dispatch
+    this.props.getClassRes();// 异步 dispatch: 请求数据
   }
 }
 const mapStateToProps = state => {
@@ -90,8 +92,9 @@ const mapStateToProps = state => {
 };
 const mapDispatchToProps = dispatch => {
   return {
-    selectMenu: (key) => {dispatch(selectMenu(key))},
-    selectSubmenu: (key) => {dispatch(selectSubmenu(key))}
+    selectMenu: (key) => dispatch(selectMenu(key)),
+    selectSubmenu: (key) => dispatch(selectSubmenu(key)),
+    getClassRes: () => dispatch(getClassRes())
   }
 }
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(BasicLayout));
