@@ -8,7 +8,7 @@ const initState = {
   searchResults: {
     currNum: 0,
     totalNum: 0,
-    list: []
+    resultList: {} // {currNum: 0, totalNum: 0, resultList: [] }
   },
   classResults: [
     // { tagName: 'in_theaters', currNum: 0, totalNum: 0, resultList: [] }
@@ -18,6 +18,15 @@ const initState = {
 const result = (state = initState, action) => {
   const type = action.type;
   switch (type) {
+    case APPEND_SEARCH_RES:
+      return {
+        ...state,
+        searchResults: {
+          currNum: action.data.resultList.length,
+          totalNum: action.data.total,
+          resultList: action.data.resultList
+        }
+      };
     case APPEND_CLASS_RES:
       return {
         ...state,
@@ -35,16 +44,15 @@ function _appendClassRes(state, action) {
   const submenuTagName = action.data.submenuTagName;
   const resData = action.data.resData;
   let newClassResult = null;
-  // let hasSameClass = false;
   for (let i = 0; i < classResults.length; i++) {
-    if (classResults[i].tagName === submenuTagName){
+    if (classResults[i].tagName === submenuTagName) {
       newClassResult = classResults[i];
       break;
     }
   }
-  if(newClassResult){
+  if (newClassResult) {
     // 已经存在与二级标题对应的结果
-  }else{
+  } else {
     // 不存在
     newClassResult = { tagName: submenuTagName, currNum: resData.resultList.length, totalNum: resData.total, resultList: resData.resultList }
   }

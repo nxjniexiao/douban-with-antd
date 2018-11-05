@@ -9,19 +9,21 @@ export const CLEAR_SEARCH_RES = 'CLEAR_SEARCH_RES';
 export const APPEND_CLASS_RES = 'APPEND_CLASS_RES';
 export const GET_RESULT_FAILED = 'GET_RESULT_FAILED';
 
-// const baseUrl = 'https://api.douban.com/v2/';
+// const baseUrl = 'https://api.douban.com/v2/';// v2 之前的内容在 proxy 字段中
 const baseUrl = 'v2/';
 const getResFunctions = {
   movie: getMoviesList,
   music: getMusicList,
   book: getBooksList
 }
-function appendSearchRes(total, resultList) {
+function appendSearchRes(name, resData) {
+  // name = 'movie' / 'music' / 'book': 为了复用reducer逻辑
   return {
     type: APPEND_SEARCH_RES,
+    name,
     data: {
-      total,
-      resultList
+      total: resData.total,
+      resultList: resData.resultList
     }
   };
 }
@@ -45,13 +47,16 @@ function getResultFailed(name, msg) {
   }
 }
 // 搜索结果
-export function getSearchRes(menuTagName, url) {
-  return dipatch => {
-    return getResFunctions[menuTagName](url).then(res => {
+export function getSearchRes(name, keyword) {
+  // name = 'movie' / 'music' / 'book': 为了复用reducer逻辑
+  return (dispatch, getState) => {
+    const url = _getSearchUrl(getState, keyword);
+    const currMenuTagName = getState().menusData.currMenuTagName;// 'movie' / 'music' / 'book'
+    return getResFunctions[currMenuTagName](url).then(resData => {
       // res: {total: Number, resultList: Array}
-      appendSearchRes(...res);
+      dispatch(appendSearchRes(name, resData));// dispatch 一个 action
     }).catch(err => {
-      getResultFailed(err);
+      dispatch(getResultFailed(name, err));// dispatch 一个 action
     });
   }
 }
@@ -60,7 +65,7 @@ export function getClassRes(name) {
   // name = 'movie' / 'music' / 'book': 为了复用reducer逻辑
   return (dispatch, getState) => {
     if (_requestIsNeccessary(getState)) {
-      let url = _getUrl(getState);
+      const url = _getUrl(getState);
       const currMenuTagName = getState().menusData.currMenuTagName;// 'movie' / 'music' / 'book'
       const currSubmenuTagNames = getState().menusData.currSubmenuTagNames;// {movie: 'in_theaters', music: '华语', book: '小说'}
       const currSubmenuTagName = currSubmenuTagNames[currMenuTagName];
@@ -99,6 +104,13 @@ function _getUrl(getState) {
   } else {
     url = url + currMenuTagName + '/search?tag=' + currSubmenuTagName;
   }
+  url = createUrlWithOpt(url, 0, 20);
+  return url;
+}
+function _getSearchUrl(getState, keyword) {
+  const currMenuTagName = getState().menusData.currMenuTagName;// 'movie' / 'music' / 'book'
+  let url = baseUrl;
+  url = url + currMenuTagName + '/search?q=' + encodeURIComponent(keyword);
   url = createUrlWithOpt(url, 0, 20);
   return url;
 }

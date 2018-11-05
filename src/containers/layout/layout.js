@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { withRouter } from 'react-router-dom';
 // 自定义
 import { selectMenu, selectSubmenu } from '../../actions/menusData';
-import { getClassRes } from '../../actions/handleResult';
+import { getClassRes, getSearchRes } from '../../actions/handleResult';
 import Dashboard from '../../components/dashboard/dashboard';
 // Header, Footer, Sider, Content组件只能放在Layout组件模块下
 const { Sider, Header, Content } = Layout;
@@ -26,6 +26,7 @@ class BasicLayout extends Component {
     this.handleMenuClick = this.handleMenuClick.bind(this);
     this.handleSubmenuClick = this.handleSubmenuClick.bind(this);
     this.getActiveSubmenus = this.getActiveSubmenus.bind(this);
+    this.search = this.search.bind(this);
   }
   componentWillMount() {
     console.log('layout will mount.');
@@ -54,7 +55,7 @@ class BasicLayout extends Component {
             <div className="search-wrapper">
               <Search className="search"
                 placeholder={'搜索' + this.state.logNames[this.props.menusData.currMenuTagName]}
-                onSearch={value => console.log(value)}
+                onSearch={value => this.search(value)}
                 style={{ width: 400, margin: '10px 0' }}
               />
             </div>
@@ -110,6 +111,13 @@ class BasicLayout extends Component {
       this.props.getClassRes(currMenuTagName);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
     }
   }
+  // 监听搜索
+  search(keyword) {
+    if(keyword){
+      const currMenuTagName = this.props.menusData.currMenuTagName;// state中当前的一级标题的tagName
+      this.props.getSearchRes(currMenuTagName, keyword);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
+    }
+  }
 }
 const mapStateToProps = state => {
   return {
@@ -120,7 +128,8 @@ const mapDispatchToProps = dispatch => {
   return {
     selectMenu: (tagName) => dispatch(selectMenu(tagName)),
     selectSubmenu: (tagName) => dispatch(selectSubmenu(tagName)),
-    getClassRes: (name) => dispatch(getClassRes(name))
+    getClassRes: (name) => dispatch(getClassRes(name)),
+    getSearchRes: (name, keyword) => dispatch(getSearchRes(name, keyword))
   }
 }
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(BasicLayout));

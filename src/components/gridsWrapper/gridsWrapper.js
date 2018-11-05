@@ -17,10 +17,14 @@ class GridsWrapper extends Component {
     this.createCols = this.createCols.bind(this);
   }
   static propTypes = {
-    resList: PropTypes.array
+    result: PropTypes.object
   }
   render() {
-    if (this.props.resList.length) {
+    const result = this.props.result
+    if(!result) {
+      return null;
+    }
+    if ( result.resultList && result.resultList.length) {
       return (
         <div className="grids-container" style={{ margin: '0 auto' }}>
           {this.createGrids()}
@@ -47,7 +51,7 @@ class GridsWrapper extends Component {
     const rows = this.state.rows;
     const colums = this.state.colums;
     const currPage = this.state.currPage;
-    const resList = this.props.resList; // 结果列表
+    const resList = this.props.result.resultList; // 结果列表
     let cols = [];
     for (let j = 0; j < colums; j++) {
       const index = currPage * rows * colums + i * colums + j;
@@ -59,7 +63,7 @@ class GridsWrapper extends Component {
             style={{ width: '100%' }}
             cover={<div alt="example"  style={{height:'195px',backgroundImage:'url('+resList[index].image+')',backgroundSize:'100% auto',backgroundPosition:'center center',backgroundRepeat:'no-repeat'}}></div>}
           >
-            <div style={{ width: '100%', margin: '5px 0', fontSize: '14px', lineHeight: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center' }}>{resList[index].title}</div>
+            <div style={{ width: '100%', margin: '5px 0', fontSize: '14px', lineHeight: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center', color: '#37a'}}>{resList[index].title}</div>
             <Stars score={resList[index].rating} />
           </Card>
         </Col>
