@@ -1,8 +1,17 @@
 .layout-container{
   width: 1000px;
-  height: 100%;
+  /* height: 100%; */
   margin: 0 auto;
 }
-.side-menu{
-  margin-top: 64px;
+.logo{
+  font-size: 30px;
+  line-height: 30px;
+  padding: 20px 0;
+  text-align: center;
+  border-bottom: 1px solid #fff;
+  color: #40a9ff;
+}
+.search-wrapper{
+  text-align: center;
+  /* background-color: '#d9d9d9'; */
 }

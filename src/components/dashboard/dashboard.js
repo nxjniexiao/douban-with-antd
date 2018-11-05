@@ -1,18 +1,18 @@
 import React, { Component } from 'react';
 import {Route} from 'react-router-dom';
 // 自定义
-import Movies from '../movies/movies';
+import Movie from '../../containers/movie/movie';
 
 class Dashboard extends Component {
   render() {
-    // const Movies = () => (<div>movies</div>);
+    // const Movie = () => (<div>movie</div>);
     const Music = () => (<div>music</div>);
-    const Books = () => (<div>books</div>);
+    const Book = () => (<div>book</div>);
     return (
       <div>
-        <Route path="/movies" component={Movies} />
+        <Route path="/movie" component={Movie} />
         <Route path="/music" component={Music} />
-        <Route path="/books" component={Books} />
+        <Route path="/book" component={Book} />
       </div>
     );
   }

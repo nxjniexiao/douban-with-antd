@@ -21,11 +21,12 @@ export function createUrlWithOpt(url, start, count) {
     throw new Error('createUrlWithOpt(url, start, count)中的 count 必须为数字');
   }
   // ?apikey=0df993c66c0c636e29ecbb5344252a4a
+  const apiKey = 'apikey=0df993c66c0c636e29ecbb5344252a4a';
   let opts = '';
   if (/\?/.test(url)) {
-    opts = '&apikey=0df993c66c0c636e29ecbb5344252a4a' + '&start=' + start + '&count=' + count;
+    opts = '&' + apiKey + '&start=' + start + '&count=' + count;
   } else {
-    opts = '?apikey=0df993c66c0c636e29ecbb5344252a4a' + '&start=' + start + '&count=' + count;
+    opts = '?' + apiKey + '&start=' + start + '&count=' + count;
   }
   return url + opts;
 }
@@ -68,7 +69,7 @@ function processMoviesList(res) {
         newMoviesList[index] = {
           id: list.id,
           title: list.title,
-          moviePoster: list.images.large,
+          image: list.images.large,
           rating: list.rating.average,
         };
       });

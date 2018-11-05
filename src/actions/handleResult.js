@@ -6,7 +6,7 @@ import {
 } from '../common/utils/doubanAPI';
 export const APPEND_SEARCH_RES = 'APPEND_SEARCH_RES';
 export const CLEAR_SEARCH_RES = 'CLEAR_SEARCH_RES';
-export const APPEND_CLASS_RES = 'APPENCH_CLASS_RES';
+export const APPEND_CLASS_RES = 'APPEND_CLASS_RES';
 export const GET_RESULT_FAILED = 'GET_RESULT_FAILED';
 
 // const baseUrl = 'https://api.douban.com/v2/';
@@ -26,7 +26,7 @@ function appendSearchRes(total, resultList) {
   };
 }
 function appendClassRes(name, submenuTagName, resData) {
-  // name = 'movie' / 'music' / 'book'
+  // name = 'movie' / 'music' / 'book': 为了复用reducer逻辑
   return {
     type: APPEND_CLASS_RES,
     name,
@@ -37,6 +37,7 @@ function appendClassRes(name, submenuTagName, resData) {
   }
 }
 function getResultFailed(name, msg) {
+  // name = 'movie' / 'music' / 'book': 为了复用reducer逻辑
   return {
     type: GET_RESULT_FAILED,
     name,
@@ -56,7 +57,7 @@ export function getSearchRes(menuTagName, url) {
 }
 // 分类结果
 export function getClassRes(name) {
-  // name = 'movie' / 'music' / 'book'
+  // name = 'movie' / 'music' / 'book': 为了复用reducer逻辑
   return (dispatch, getState) => {
     if (_requestIsNeccessary(getState)) {
       let url = _getUrl(getState);
@@ -76,10 +77,11 @@ export function getClassRes(name) {
 function _requestIsNeccessary(getState) {
   const currMenuTagName = getState().menusData.currMenuTagName;// 'movie' / 'music' / 'book'
   const currSubmenuTagNames = getState().menusData.currSubmenuTagNames;// {movie: 'in_theaters', music: '华语', book: '小说'}
-  const currClassResult = getState()[currMenuTagName].classResult;
+  const currSubmenuTagName = currSubmenuTagNames[currMenuTagName];
+  const currClassResults = getState()[currMenuTagName].classResults;
   let isNeccessary = true;
-  for (let i = 0; i < currClassResult; i++) {
-    if ((currClassResult[i].tagName === currSubmenuTagNames) && (currClassResult[i].list.length)) {
+  for (let i = 0; i < currClassResults.length; i++) {
+    if ((currClassResults[i].tagName === currSubmenuTagName) && (currClassResults[i].resultList.length)) {
       isNeccessary = false;
       break;
     }
