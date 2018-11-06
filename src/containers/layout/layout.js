@@ -31,39 +31,43 @@ class BasicLayout extends Component {
   componentWillMount() {
     console.log('layout will mount.');
     // sessionStorage中存储的当前url
-    const storageCurrMenuTagName = sessionStorage.getItem('currMenuTagName');
-    if (storageCurrMenuTagName) {
-      this.props.history.push('/' + storageCurrMenuTagName);
+    const storageCurrMenuKeyName = sessionStorage.getItem('currMenuKeyName');
+    if (storageCurrMenuKeyName) {
+      this.props.history.push('/' + storageCurrMenuKeyName);
     } else {
       this.props.history.push('/movie');
     }
   }
   render() {
     const menus = this.props.menusData.menus;
-    const currMenuTagName = this.props.menusData.currMenuTagName;
-    const currSubmenuTagNames = this.props.menusData.currSubmenuTagNames;
+    const currMenuKeyName = this.props.menusData.currMenuKeyName;
+    const currSubmenuObj = this.props.menusData.currSubmenuObj;
     return (
       <div className="layout-container">
         <Layout style={{ height: '100%' }}>
           <Sider width='150' style={{ backgroundColor: '#d9d9d9' }}>
-            <div className="logo">{this.state.logNames[this.props.menusData.currMenuTagName]}</div>
-            <Menu onClick={this.handleMenuClick} selectedKeys={[currMenuTagName]} className="side-menu" style={{ backgroundColor: '#d9d9d9' }}>
-              {menus.map(menu => (<Item key={menu.tagName}><Link to={'/' + menu.tagName}>{menu.title}</Link></Item>))}
+            <div className="logo">{this.state.logNames[this.props.menusData.currMenuKeyName]}</div>
+            <Menu onClick={this.handleMenuClick} selectedKeys={[currMenuKeyName]} className="side-menu" style={{ backgroundColor: '#d9d9d9' }}>
+              {menus.map(menu => (<Item key={menu.keyName}><Link to={'/' + menu.keyName}>{menu.title}</Link></Item>))}
             </Menu>
           </Sider>
           <Content>
             <div className="search-wrapper">
               <Search className="search"
-                placeholder={'搜索' + this.state.logNames[this.props.menusData.currMenuTagName]}
+                placeholder={'搜索' + this.state.logNames[this.props.menusData.currMenuKeyName]}
                 onSearch={value => this.search(value)}
                 style={{ width: 400, margin: '10px 0' }}
               />
             </div>
             <Layout>
               <Header style={{ backgroundColor: '#F0F2F5' }}>
-                <Menu mode="horizontal" onClick={this.handleSubmenuClick} selectedKeys={[currSubmenuTagNames[currMenuTagName]]} style={{ backgroundColor: '#F0F2F5' }}>
-                  {this.getActiveSubmenus()}
-                </Menu>
+                {/search/.test(this.props.location.pathname) ?
+                  '搜索结果' :
+                  <Menu mode="horizontal" onClick={this.handleSubmenuClick} selectedKeys={[currSubmenuObj[currMenuKeyName].keyName]} style={{ backgroundColor: '#F0F2F5' }}>
+                    {this.getActiveSubmenus()}
+                  </Menu>
+                }
+
               </Header>
               <Content>
                 <Dashboard />
@@ -76,46 +80,47 @@ class BasicLayout extends Component {
   }
   getActiveSubmenus() {
     const menus = this.props.menusData.menus;
-    const currMenuTagName = this.props.menusData.currMenuTagName;
+    const currMenuKeyName = this.props.menusData.currMenuKeyName;
     let submenus = null;
     for (let i = 0; i < menus.length; i++) {
-      if (menus[i].tagName === currMenuTagName) {
+      if (menus[i].keyName === currMenuKeyName) {
         submenus = menus[i].submenus;
         break;
       }
     }
     if (submenus) {
-      return submenus.map(submenu => (<Item key={submenu.tagName}>{submenu.title}</Item>))
+      return submenus.map(submenu => (<Item key={submenu.keyName}>{submenu.title}</Item>))
     }
     return null;
   }
   // 一级菜单点击事件
   handleMenuClick(event) {
     const newMenuTagName = event.key;// 新的一级标题的tagName
-    const currMenuTagName = this.props.menusData.currMenuTagName;// state中当前的一级标题的tagName
-    if(newMenuTagName !== currMenuTagName) {
+    const currMenuKeyName = this.props.menusData.currMenuKeyName;// state中当前的一级标题的tagName
+    if (newMenuTagName !== currMenuKeyName) {
       // 一级标题发生了变化
       this.props.selectMenu(newMenuTagName);// 同步 dispatch
-      this.props.getClassRes(newMenuTagName);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
+      // this.props.getClassRes(newMenuTagName);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
     }
   }
   // 二级菜单点击事件
   handleSubmenuClick(event) {
-    const currMenuTagName = this.props.menusData.currMenuTagName;// state中当前的一级标题的tagName
+    const currMenuKeyName = this.props.menusData.currMenuKeyName;// state中当前的一级标题的tagName
     const newSubmenuTagName = event.key// 新的二级标题的tagName
-    const currSubmenuTagNames = this.props.menusData.currSubmenuTagNames;
-    const currSubmenuTagName = currSubmenuTagNames[currMenuTagName];// state中当前的二级标题的tagName
-    if(newSubmenuTagName !== currSubmenuTagName) {
+    const currSubmenuObj = this.props.menusData.currSubmenuObj;
+    const currSubmenuTagName = currSubmenuObj[currMenuKeyName];// state中当前的二级标题的tagName
+    if (newSubmenuTagName !== currSubmenuTagName) {
       // 二级标题发生了改变
       this.props.selectSubmenu(newSubmenuTagName);// 同步 dispatch
-      this.props.getClassRes(currMenuTagName);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
+      this.props.getClassRes(currMenuKeyName);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
     }
   }
   // 监听搜索
   search(keyword) {
-    if(keyword){
-      const currMenuTagName = this.props.menusData.currMenuTagName;// state中当前的一级标题的tagName
-      this.props.getSearchRes(currMenuTagName, keyword);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
+    if (keyword) {
+      const currMenuKeyName = this.props.menusData.currMenuKeyName;// state中当前的一级标题的tagName
+      this.props.getSearchRes(currMenuKeyName, keyword);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
+      // this.props.history.push('/search');
     }
   }
 }
@@ -126,8 +131,8 @@ const mapStateToProps = state => {
 };
 const mapDispatchToProps = dispatch => {
   return {
-    selectMenu: (tagName) => dispatch(selectMenu(tagName)),
-    selectSubmenu: (tagName) => dispatch(selectSubmenu(tagName)),
+    selectMenu: (keyName) => dispatch(selectMenu(keyName)),
+    selectSubmenu: (keyName) => dispatch(selectSubmenu(keyName)),
     getClassRes: (name) => dispatch(getClassRes(name)),
     getSearchRes: (name, keyword) => dispatch(getSearchRes(name, keyword))
   }

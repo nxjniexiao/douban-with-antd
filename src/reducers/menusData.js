@@ -1,50 +1,55 @@
 import { SELECT_MENU, SELECT_SUBMENU } from '../actions/menusData';
 
 // 获取sessionStorage
-const storageCurrMenuTagName = sessionStorage.getItem('currMenuTagName');
-let storageCurrSubmenuTagNames = sessionStorage.getItem('currSubmenuTagNames');
-if (storageCurrSubmenuTagNames) {
-  storageCurrSubmenuTagNames = JSON.parse(storageCurrSubmenuTagNames);
+const storageCurrMenuKeyName = sessionStorage.getItem('currMenuKeyName');
+let storageCurrSubmenuObj = sessionStorage.getItem('currSubmenuObj');
+if (storageCurrSubmenuObj) {
+  storageCurrSubmenuObj = JSON.parse(storageCurrSubmenuObj);
 }
-const currMenuTagName = storageCurrMenuTagName || 'movie';
-const currSubmenuTagNames = storageCurrSubmenuTagNames || { movie: 'in_theaters', music: '华语', book: '小说' };
+const initSubmenuObj = {
+  movie: { keyName: 'in_theaters', title: '正在热映' },
+  music: { keyName: 'china', title: '华语' },
+  book: { keyName: 'novel', title: '小说' }
+};
+const currMenuKeyName = storageCurrMenuKeyName || 'movie';
+const currSubmenuObj = storageCurrSubmenuObj || initSubmenuObj;
 const initMenusData = {
-  currMenuTagName,
-  currSubmenuTagNames,// {movie: 'in_theaters', music: '华语', book: '小说'}
+  currMenuKeyName,// 'movie'
+  currSubmenuObj,
   menus: [
     {
       title: '电影',
-      tagName: 'movie',
+      keyName: 'movie',
       submenus: [
-        { title: '正在热映', tagName: 'in_theaters' },
-        { title: '即将上映', tagName: 'coming_soon' },
-        { title: '高分电影', tagName: 'top250' },
-        { title: '华语', tagName: '华语' },
-        { title: '欧美', tagName: '欧美' },
-        { title: '韩国', tagName: '韩国' },
-        { title: '日本', tagName: '日本' }
+        { title: '正在热映', keyName: 'in_theaters' },
+        { title: '即将上映', keyName: 'coming_soon' },
+        { title: '高分电影', keyName: 'top250' },
+        { title: '华语', keyName: 'china' },
+        { title: '欧美', keyName: 'europeUS' },
+        { title: '韩国', keyName: 'korean' },
+        { title: '日本', keyName: 'japan' }
       ]
     },
     {
       title: '音乐',
-      tagName: 'music',
+      keyName: 'music',
       submenus: [
-        { title: '华语', tagName: '华语' },
-        { title: '欧美', tagName: '欧美' },
-        { title: '粤语', tagName: '粤语' },
-        { title: '韩语', tagName: '韩国' },
-        { title: '日语', tagName: '日语' }
+        { title: '华语', keyName: 'china' },
+        { title: '欧美', keyName: 'europeUS' },
+        { title: '粤语', keyName: 'cantonese' },
+        { title: '韩语', keyName: 'korean' },
+        { title: '日语', keyName: 'japan' }
       ]
     },
     {
       title: '图书',
-      tagName: 'book',
+      keyName: 'book',
       submenus: [
-        { title: '小说', tagName: '小说' },
-        { title: '文学', tagName: '文学' },
-        { title: '历史', tagName: '历史' },
-        { title: '随笔', tagName: '随笔' },
-        { title: '漫画', tagName: '漫画' }
+        { title: '小说', keyName: 'novel' },
+        { title: '文学', keyName: 'literature' },
+        { title: '历史', keyName: 'history' },
+        { title: '随笔', keyName: 'essay' },
+        { title: '漫画', keyName: 'comic' }
       ]
     },
   ]
@@ -53,27 +58,42 @@ const menusData = (state = initMenusData, action) => {
   const type = action.type;
   switch (type) {
     case SELECT_MENU:
-      sessionStorage.setItem('currMenuTagName', action.menuTagName); //存储sessionStorage
+      sessionStorage.setItem('currMenuKeyName', action.menuKeyName); //存储sessionStorage
       return {
         ...state,
-        currMenuTagName: action.menuTagName
+        currMenuKeyName: action.menuKeyName
       };
     case SELECT_SUBMENU:
-      const menuTagName = state.currMenuTagName;// 当前一级标题的 tagName
-      const currSubmenuTagNames = state.currSubmenuTagNames;// 当前所有二级标题的 tagNames
-      const newSubmenuTagName = action.submenuTagName;// 当前要修改的二级标题的 tagName
-      // const newCurrSubmenuTagNames = Object.assign({}, currSubmenuTagNames, { [menuTagName]: newSubmenuTagName});
-      const newCurrSubmenuTagNames = {
-        ...currSubmenuTagNames,
-        [menuTagName]: newSubmenuTagName
-      };
-      sessionStorage.setItem('currSubmenuTagNames', JSON.stringify(newCurrSubmenuTagNames)); //存储sessionStorage
+      const newcurrSubmenuObj = _handleSubmenu(state, action);
       return {
         ...state,
-        currSubmenuTagNames: newCurrSubmenuTagNames
+        currSubmenuObj: newcurrSubmenuObj
       };
     default:
       return state;
+  }
+}
+function _handleSubmenu(state, action) {
+  const currMenuKeyName = state.currMenuKeyName;// 当前一级标题的 keyName
+  const currSubmenuObj = state.currSubmenuObj;// 当前二级标题( 对象:{movie:{},music:{},book:{}} )
+  const newSubmenuKeyName = action.submenuKeyName;// 新二级标题的 keyName
+  const menus = state.menus;// 所有一级、二级标题
+  const currMenuObj = _getObjByKeyName(menus, currMenuKeyName);
+  const newSubmenuObj = _getObjByKeyName(currMenuObj.submenus, newSubmenuKeyName);
+  // const newcurrSubmenuObj = Object.assign({}, currSubmenuObj, { [menuKeyName]: newSubmenuKeyName});
+  const newcurrSubmenuObj = {
+    ...currSubmenuObj,
+    [currMenuKeyName]: newSubmenuObj
+  };
+  sessionStorage.setItem('currSubmenuObj', JSON.stringify(newcurrSubmenuObj)); //存储sessionStorage
+  return newcurrSubmenuObj;
+}
+// 根据keyName取出数组中的一个对象
+function _getObjByKeyName(arr, keyName){
+  for(let i = 0; i<arr.length; i++){
+    if(arr[i].keyName === keyName){
+      return arr[i];
+    }
   }
 }
 export default menusData;

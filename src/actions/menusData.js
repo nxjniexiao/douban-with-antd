@@ -1,15 +1,15 @@
 export const SELECT_MENU = 'SELECT_MENU';
 export const SELECT_SUBMENU = 'SELECT_SUBMENU';
 
-export function selectMenu(menuTagName){
+export function selectMenu(menuKeyName){
   return {
     type: SELECT_MENU,
-    menuTagName
+    menuKeyName
   };
 }
-export function selectSubmenu(submenuTagName){
+export function selectSubmenu(submenuKeyName){
   return {
     type: SELECT_SUBMENU,
-    submenuTagName
+    submenuKeyName
   };
 }

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-
+/* * 高阶组件 * */
 export default function FilterResList(Comp, name) {
-  // comp 为组件; name = 'movie' 'music' 'book'
+  // comp 为通用组件; name为新组件名 'movie' 'music' 'book' 'search'
   return class compWithFilterResList extends Component {
     constructor(props) {
       super(props);
@@ -11,24 +11,13 @@ export default function FilterResList(Comp, name) {
       return <Comp result={this.filterData()} />
     }
     filterData() {
-      // const currMenuTagName = state.menusData.currMenuTagName;// 当前一级标题
-      const currMenuTagName = name;// 当前一级标题
-      const currSubmenuTagNames = this.props.menusData.currSubmenuTagNames;// 所有二级标题(对象)
-      const currSubmenuTagName = currSubmenuTagNames[currMenuTagName];// 当前二级标题
-      const allResults = this.props[currMenuTagName];// {searchResults: {} classResults: []}
-      const classResults = allResults.classResults;
-      const searchResults = allResults.searchResults;
-      if(searchResults.resultList.length){
-        // 存在搜索结果，则返回此结果
-        return searchResults;
-      }
-      if (classResults) {
-        for (let i = 0; i < classResults.length; i++) {
-          if (classResults[i].tagName === currSubmenuTagName) {
-            return classResults[i];
-          }
-        }
-      }
+      const currMenuKeyName = this.props.menusData.currMenuKeyName;// 当前一级标题
+      const currSubmenuObj = this.props.menusData.currSubmenuObj;// 所有二级标题(对象:{movie:{},music:{},book:{}} )
+      const currSubmenuKeyName = currSubmenuObj[currMenuKeyName].keyName;// 当前二级标题
+      const allResults = this.props[currMenuKeyName];// { searchResult:{}, classResult: {in_threater:{}, coming_soon:{} }
+      const classResult = allResults.classResult;
+      const searchResult = allResults.searchResult;
+      return (name === 'search') ? searchResult : classResult[currSubmenuKeyName];
     }
   }
 }

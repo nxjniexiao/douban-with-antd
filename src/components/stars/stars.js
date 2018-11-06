@@ -22,7 +22,7 @@ class Stars extends PureComponent {
     const starsArray = this.getStarsArray();
     return (
       <div style={{fontSize: 0,textAlign: 'center'}}>
-        {this.props.score ? starsArray.map( (star, index) =>(<img src={starsPath[star]} key={index} style={{width: '12px',height: '12px',verticalAlign: 'middle'}}/>)) : null}
+        {this.props.score ? starsArray.map( (star, index) =>(<img src={starsPath[star]} key={index} style={{width: '12px',height: '12px',verticalAlign: 'middle'}} alt="海报" />)) : null}
         {<span style={{fontSize: '12px', height: '12px', marginLeft: '4px', verticalAlign: 'middle'}}>{this.props.score ? this.props.score.toFixed(1) : '暂无评分'} </span>}
       </div>
     );

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Row, Col, Card } from 'antd';
 // 自定义
 import Stars from '../stars/stars';
-const { Meta } = Card;
+// const { Meta } = Card;
 
 class GridsWrapper extends Component {
   constructor(props) {
