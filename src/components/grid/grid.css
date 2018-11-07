@@ -1,0 +1,19 @@
+.cover{
+  background-size: 100% auto;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+.title,.sub-title{
+  width: 100%;
+  margin: 5px 0;
+  font-size: 14px;
+  line-height: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+.title{
+  color: #37a;
+  font-weight: bold;
+}

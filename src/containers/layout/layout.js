@@ -37,6 +37,9 @@ class BasicLayout extends Component {
     } else {
       this.props.history.push('/movie');
     }
+    // 加载数据
+    const currMenuKeyName = this.props.menusData.currMenuKeyName;// state中当前的一级标题;的keyName
+    this.props.getClassRes(currMenuKeyName);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
   }
   render() {
     const menus = this.props.menusData.menus;
@@ -67,7 +70,6 @@ class BasicLayout extends Component {
                     {this.getActiveSubmenus()}
                   </Menu>
                 }
-
               </Header>
               <Content>
                 <Dashboard />
@@ -95,32 +97,32 @@ class BasicLayout extends Component {
   }
   // 一级菜单点击事件
   handleMenuClick(event) {
-    const newMenuTagName = event.key;// 新的一级标题的tagName
-    const currMenuKeyName = this.props.menusData.currMenuKeyName;// state中当前的一级标题的tagName
+    const newMenuTagName = event.key;// 新的一级标题;的keyName
+    const currMenuKeyName = this.props.menusData.currMenuKeyName;// state中当前的一级标题;的keyName
     if (newMenuTagName !== currMenuKeyName) {
       // 一级标题发生了变化
       this.props.selectMenu(newMenuTagName);// 同步 dispatch
-      // this.props.getClassRes(newMenuTagName);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
+      this.props.getClassRes(newMenuTagName);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
     }
   }
   // 二级菜单点击事件
   handleSubmenuClick(event) {
-    const currMenuKeyName = this.props.menusData.currMenuKeyName;// state中当前的一级标题的tagName
-    const newSubmenuTagName = event.key// 新的二级标题的tagName
+    const currMenuKeyName = this.props.menusData.currMenuKeyName;// state中当前的一级标题;的keyName
+    const newSubmenuTagName = event.key// 新的二级标题;的keyName
     const currSubmenuObj = this.props.menusData.currSubmenuObj;
-    const currSubmenuTagName = currSubmenuObj[currMenuKeyName];// state中当前的二级标题的tagName
+    const currSubmenuTagName = currSubmenuObj[currMenuKeyName].keyName;// state中当前的二级标题;的keyName
     if (newSubmenuTagName !== currSubmenuTagName) {
       // 二级标题发生了改变
       this.props.selectSubmenu(newSubmenuTagName);// 同步 dispatch
-      this.props.getClassRes(currMenuKeyName);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
+      this.props.getClassRes(currMenuKeyName, false);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
     }
   }
   // 监听搜索
   search(keyword) {
     if (keyword) {
-      const currMenuKeyName = this.props.menusData.currMenuKeyName;// state中当前的一级标题的tagName
-      this.props.getSearchRes(currMenuKeyName, keyword);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
-      // this.props.history.push('/search');
+      const currMenuKeyName = this.props.menusData.currMenuKeyName;// state中当前的一级标题;的keyName
+      this.props.getSearchRes(currMenuKeyName, keyword, false);// 异步 dispatch: 请求数据(传入name参数: 'movie' 'music' 'book')
+      this.props.history.push('/search');
     }
   }
 }
@@ -133,8 +135,8 @@ const mapDispatchToProps = dispatch => {
   return {
     selectMenu: (keyName) => dispatch(selectMenu(keyName)),
     selectSubmenu: (keyName) => dispatch(selectSubmenu(keyName)),
-    getClassRes: (name) => dispatch(getClassRes(name)),
-    getSearchRes: (name, keyword) => dispatch(getSearchRes(name, keyword))
+    getClassRes: (name, isLoadingMore) => dispatch(getClassRes(name, isLoadingMore)),
+    getSearchRes: (name, keyword, isLoadingMore) => dispatch(getSearchRes(name, keyword, isLoadingMore))
   }
 }
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(BasicLayout));

@@ -8,7 +8,7 @@ export default function FilterResList(Comp, name) {
       this.filterData = this.filterData.bind(this);
     }
     render() {
-      return <Comp result={this.filterData()} />
+      return <Comp type={this.props.menusData.currMenuKeyName} result={this.filterData()} />
     }
     filterData() {
       const currMenuKeyName = this.props.menusData.currMenuKeyName;// 当前一级标题

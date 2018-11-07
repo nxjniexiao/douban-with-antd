@@ -5,8 +5,9 @@ import {
   createUrlWithOpt
 } from '../common/utils/doubanAPI';
 export const LOAD_SEARCH_RES = 'LOAD_SEARCH_RES';
-export const CLEAR_SEARCH_RES = 'CLEAR_SEARCH_RES';
+export const MORE_SEARCH_RES = 'MORE_SEARCH_RES';
 export const LOAD_CLASS_RES = 'LOAD_CLASS_RES';
+export const MORE_CLASS_RES = 'MORE_CLASS_RES';
 export const GET_RESULT_FAILED = 'GET_RESULT_FAILED';
 
 // const baseUrl = 'https://api.douban.com/v2/';// 'v2/' 之前的内容在 proxy 字段中
@@ -17,7 +18,7 @@ const getResFunctions = {
   book: getBooksList
 }
 function loadSearchRes(name, keyword, resData) {
-  // name = 'movie' / 'music' / 'book': 为了复用reducer逻辑
+  // name = 'movie' / 'music' / 'book' 为了复用reducer逻辑
   return {
     type: LOAD_SEARCH_RES,
     name,
@@ -28,8 +29,19 @@ function loadSearchRes(name, keyword, resData) {
     }
   };
 }
+function moreSearchRes(name, resData) {
+  // name = 'movie' / 'music' / 'book' 为了复用reducer逻辑
+  return {
+    type: MORE_SEARCH_RES,
+    name,
+    data: {
+      total: resData.total,
+      resultList: resData.resultList
+    }
+  };
+}
 function loadClassRes(name, submenuKeyName, resData) {
-  // name = 'movie' / 'music' / 'book': 为了复用reducer逻辑
+  // name = 'movie' / 'music' / 'book' 为了复用reducer逻辑
   return {
     type: LOAD_CLASS_RES,
     name,
@@ -40,41 +52,62 @@ function loadClassRes(name, submenuKeyName, resData) {
     }
   }
 }
+function moreClassRes(name, submenuKeyName, resData) {
+  // name = 'movie' / 'music' / 'book' 为了复用reducer逻辑
+  return {
+    type: MORE_CLASS_RES,
+    name,
+    data: {
+      submenuKeyName,
+      total: resData.total,
+      resultList: resData.resultList
+    }
+  }
+}
 function getResultFailed(name, msg) {
-  // name = 'movie' / 'music' / 'book': 为了复用reducer逻辑
+  // name = 'movie' / 'music' / 'book' 为了复用reducer逻辑
   return {
     type: GET_RESULT_FAILED,
     name,
     errMsg: msg
   }
 }
-// 搜索结果
-export function getSearchRes(name, keyword) {
-  // name = 'movie' / 'music' / 'book': 为了复用reducer逻辑
-  return (dispatch, getState) => {
-    const url = _getSearchUrl(getState, keyword);
-    const currMenuKeyName = getState().menusData.currMenuKeyName;// 'movie' / 'music' / 'book'
-    return getResFunctions[currMenuKeyName](url).then(resData => {
-      // res: {total: Number, resultList: Array}
-      dispatch(loadSearchRes(name, keyword, resData));// dispatch 一个 action
-    }).catch(err => {
-      dispatch(getResultFailed(name, err));// dispatch 一个 action
-    });
-  }
-}
-// 分类结果
-export function getClassRes(name) {
-  // name = 'movie' / 'music' / 'book': 为了复用reducer逻辑
+// 请求搜索结果
+export function getSearchRes(name, keyword, isLoadingMore) {
+  // name = 'movie' / 'music' / 'book' 为了复用reducer逻辑
   return (dispatch, getState) => {
     const state = getState();
-    if (_requestIsNeccessary(state, 'classResult')) {
-      const url = _getUrl(state);
-      const currMenuKeyName = state.menusData.currMenuKeyName;// 当前一级标题: 'movie' / 'music' / 'book'
-      const currSubmenuObj = state.menusData.currSubmenuObj;// 当前二级标题对象: { movie: {}, music: {}, book: {} }
-      const currSubmenuKeyName = currSubmenuObj[currMenuKeyName].keyName;
+    if (_requestIsNeccessary(state, 'searchResult', isLoadingMore, keyword)) {
+      const url = _getSearchUrl(state, keyword, isLoadingMore);
+      const { currMenuKeyName } = _getCurrKeyName(state);
+      return getResFunctions[currMenuKeyName](url).then(resData => {
+        if(isLoadingMore){
+          dispatch(moreSearchRes(name, resData));// dispatch 一个 action
+        }else{
+          dispatch(loadSearchRes(name, keyword, resData));// dispatch 一个 action
+        }
+      }).catch(err => {
+        dispatch(getResultFailed(name, err));// dispatch 一个 action
+      });
+    }
+  }
+}
+// 请求分类结果
+export function getClassRes(name, isLoadingMore) {
+  // name = 'movie' / 'music' / 'book' 为了复用reducer逻辑
+  // isLoadingMore = ture 表示加载更多
+  return (dispatch, getState) => {
+    const state = getState();
+    if (_requestIsNeccessary(state, 'classResult', isLoadingMore)) {
+      const url = _getUrl(state, isLoadingMore);
+      const { currMenuKeyName, currSubmenuKeyName } = _getCurrKeyName(state);
       // 请求数据
       return getResFunctions[currMenuKeyName](url).then(resData => {
-        dispatch(loadClassRes(name, currSubmenuKeyName, resData));// dispatch 一个 action
+        if(isLoadingMore){
+          dispatch(moreClassRes(name, currSubmenuKeyName, resData));// dispatch 一个 action
+        }else{
+          dispatch(loadClassRes(name, currSubmenuKeyName, resData));// dispatch 一个 action
+        }
       }).catch(err => {
         dispatch(getResultFailed(name, err));// dispatch 一个 action
       });
@@ -82,42 +115,97 @@ export function getClassRes(name) {
   }
 }
 // 根据当前 state 判断是否需要向服务器请求数据
-function _requestIsNeccessary(state, dataType) {
-  const currMenuKeyName = state.menusData.currMenuKeyName;// 当前一级标题: 'movie' / 'music' / 'book'
-  const allResults = state[currMenuKeyName];
+function _requestIsNeccessary(state, dataType, isLoadingMore, keyword) {
+  const { currMenuKeyName, currSubmenuKeyName } = _getCurrKeyName(state);
+  const { searchResult, classResult } = _getCurrResult(state);
+  if (isLoadingMore) {
+    // 加载更多
+    if (dataType === 'searchResult') {
+      // 请求搜索数据
+      const currNum = searchResult.currNum;
+      const totalNum = searchResult.totalNum;
+      return currNum < totalNum;
+    } else {
+      // 请求分类数据
+      const currNum = classResult.currNum;
+      const totalNum = classResult.totalNum;
+      return currNum < totalNum;
+    }
+  }
+  // 第一次加载
   if (dataType === 'searchResult') {
-    const resultList = allResults.searchResult.resultList;
-    return !(resultList && resultList.length);
+    // 请求搜索数据
+    const currKeyword = searchResult.keyword;
+    if (keyword === currKeyword) {
+      return false;
+    }
+    return true;
   } else {
-    const currSubmenuObj = state.menusData.currSubmenuObj;// 当前二级标题对象: {movie:{},music:{},book:{}}
-    const currSubmenuKeyName = currSubmenuObj[currMenuKeyName].keyName;// 当前二级标题的 keyName
-    const classResult = state[currMenuKeyName].classResult;
-    if(currSubmenuKeyName in classResult){
+    // 请求分类数据
+    if (classResult && (currSubmenuKeyName in classResult)) {
       const resultList = classResult[currSubmenuKeyName].resultList;
       return !(resultList && resultList.length);
     }
     return true;
   }
 }
-function _getUrl(state) {
-  const currMenuKeyName = state.menusData.currMenuKeyName;// 当前一级标题: 'movie' / 'music' / 'book'
-  const currSubmenuObj = state.menusData.currSubmenuObj;// 当前二级标题对象: {movie:{keyName:'', title:''},music:{...},book:{...}}
-  const currSubmenuKeyName = currSubmenuObj[currMenuKeyName].keyName;
+function _getUrl(state, isLoadingMore) {
+  const { currMenuKeyName, currSubmenuKeyName } = _getCurrKeyName(state);
+  const { searchResult, classResult } = _getCurrResult(state);
   const specialKeyNames = ['in_theaters', 'coming_soon', 'top250'];
   let url = baseUrl;
   if (specialKeyNames.indexOf(currSubmenuKeyName) !== -1) {
     url = url + currMenuKeyName + '/' + currSubmenuKeyName;
   } else {
-    const title = currSubmenuObj[currMenuKeyName].title;
+    const title = _getTitle(state);
     url = url + currMenuKeyName + '/search?tag=' + title;
   }
-  url = createUrlWithOpt(url, 0, 20);
+  if (isLoadingMore) {
+    const currNum = classResult.currNum;
+    url = createUrlWithOpt(url, currNum, 20);
+  } else {
+    url = createUrlWithOpt(url, 0, 20);
+  }
   return url;
 }
-function _getSearchUrl(getState, keyword) {
-  const currMenuKeyName = getState().menusData.currMenuKeyName;// 'movie' / 'music' / 'book'
+function _getSearchUrl(state, keyword, isLoadingMore) {
+  const { currMenuKeyName } = _getCurrKeyName(state);
+  const { searchResult } = _getCurrResult(state);
   let url = baseUrl;
-  url = url + currMenuKeyName + '/search?q=' + encodeURIComponent(keyword);
-  url = createUrlWithOpt(url, 0, 20);
+  if(isLoadingMore) {
+    const originKeyword = searchResult.keyword;
+    const currNum = searchResult.currNum;
+    url = url + currMenuKeyName + '/search?q=' + encodeURIComponent(originKeyword);
+    url = createUrlWithOpt(url, currNum, 20);
+  }else{
+    url = url + currMenuKeyName + '/search?q=' + encodeURIComponent(keyword);
+    url = createUrlWithOpt(url, 0, 20);
+  }
   return url;
+}
+// 根据当前一级和二级菜单返回当前要显示的 classResult 和 searchResult
+function _getCurrResult(state) {
+  const currMenuKeyName = state.menusData.currMenuKeyName;// 当前一级标题: 'movie' / 'music' / 'book'
+  const currSubmenuObj = state.menusData.currSubmenuObj;// 当前二级标题对象: {movie:{},music:{},book:{}}
+  const currSubmenuKeyName = currSubmenuObj[currMenuKeyName].keyName;// 当前二级标题的 keyName
+  return {
+    searchResult: state[currMenuKeyName].searchResult,
+    classResult: state[currMenuKeyName].classResult[currSubmenuKeyName]
+  };
+}
+// 返回当前一级和二级菜单的 keyName
+function _getCurrKeyName(state) {
+  const currMenuKeyName = state.menusData.currMenuKeyName;// 当前一级标题: 'movie' / 'music' / 'book'
+  const currSubmenuObj = state.menusData.currSubmenuObj;// 当前二级标题对象: {movie:{keyName:'', title:''},music:{...},book:{...}}
+  const currSubmenuKeyName = currSubmenuObj[currMenuKeyName].keyName;
+  return {
+    currMenuKeyName,
+    currSubmenuKeyName
+  };
+}
+// 返回当前二级菜单对应的 title
+function _getTitle(state) {
+  const currMenuKeyName = state.menusData.currMenuKeyName;// 当前一级标题: 'movie' / 'music' / 'book'
+  const currSubmenuObj = state.menusData.currSubmenuObj;// 当前二级标题对象: {movie:{keyName:'', title:''},music:{...},book:{...}}
+  return currSubmenuObj[currMenuKeyName].title;
 }

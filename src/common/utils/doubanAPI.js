@@ -111,7 +111,7 @@ function processMusicAndBooksList(res, name) {
         altTitle: item.alt_title,
         author,
         image: item.image,
-        score: item.rating.average
+        rating: Number(item.rating.average)
       }
     })
     if (originalList.length) {
