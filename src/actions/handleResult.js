@@ -116,7 +116,7 @@ export function getClassRes(name, isLoadingMore) {
 }
 // 根据当前 state 判断是否需要向服务器请求数据
 function _requestIsNeccessary(state, dataType, isLoadingMore, keyword) {
-  const { currMenuKeyName, currSubmenuKeyName } = _getCurrKeyName(state);
+  // const { currMenuKeyName, currSubmenuKeyName } = _getCurrKeyName(state);
   const { searchResult, classResult } = _getCurrResult(state);
   if (isLoadingMore) {
     // 加载更多
@@ -142,8 +142,9 @@ function _requestIsNeccessary(state, dataType, isLoadingMore, keyword) {
     return true;
   } else {
     // 请求分类数据
-    if (classResult && (currSubmenuKeyName in classResult)) {
-      const resultList = classResult[currSubmenuKeyName].resultList;
+    // if (classResult && (currSubmenuKeyName in classResult)) { // classResult 是根据二级菜单筛选出来的
+    if (classResult) {
+      const resultList = classResult.resultList;
       return !(resultList && resultList.length);
     }
     return true;
@@ -151,7 +152,7 @@ function _requestIsNeccessary(state, dataType, isLoadingMore, keyword) {
 }
 function _getUrl(state, isLoadingMore) {
   const { currMenuKeyName, currSubmenuKeyName } = _getCurrKeyName(state);
-  const { searchResult, classResult } = _getCurrResult(state);
+  const { classResult } = _getCurrResult(state);
   const specialKeyNames = ['in_theaters', 'coming_soon', 'top250'];
   let url = baseUrl;
   if (specialKeyNames.indexOf(currSubmenuKeyName) !== -1) {
@@ -185,9 +186,7 @@ function _getSearchUrl(state, keyword, isLoadingMore) {
 }
 // 根据当前一级和二级菜单返回当前要显示的 classResult 和 searchResult
 function _getCurrResult(state) {
-  const currMenuKeyName = state.menusData.currMenuKeyName;// 当前一级标题: 'movie' / 'music' / 'book'
-  const currSubmenuObj = state.menusData.currSubmenuObj;// 当前二级标题对象: {movie:{},music:{},book:{}}
-  const currSubmenuKeyName = currSubmenuObj[currMenuKeyName].keyName;// 当前二级标题的 keyName
+  const { currMenuKeyName, currSubmenuKeyName } = _getCurrKeyName(state);
   return {
     searchResult: state[currMenuKeyName].searchResult,
     classResult: state[currMenuKeyName].classResult[currSubmenuKeyName]

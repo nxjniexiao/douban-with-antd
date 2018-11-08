@@ -1,4 +1,4 @@
-import {combineReducers} from 'redux' ;
+import { combineReducers } from 'redux';
 // 引入reducers
 import menusData from './menusData';
 import handleResult from './handleResult';// 处理 movie/music/book 的 reducer
@@ -11,4 +11,4 @@ export default combineReducers(
     music: createNamedWrapperReducer(handleResult, 'music'),
     book: createNamedWrapperReducer(handleResult, 'book')
   }
-  );
+);

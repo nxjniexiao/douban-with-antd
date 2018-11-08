@@ -11,13 +11,16 @@ export default function FilterResList(Comp, name) {
       return <Comp type={this.props.menusData.currMenuKeyName} result={this.filterData()} />
     }
     filterData() {
-      const currMenuKeyName = this.props.menusData.currMenuKeyName;// 当前一级标题
-      const currSubmenuObj = this.props.menusData.currSubmenuObj;// 所有二级标题(对象:{movie:{},music:{},book:{}} )
-      const currSubmenuKeyName = currSubmenuObj[currMenuKeyName].keyName;// 当前二级标题
-      const allResults = this.props[currMenuKeyName];// { searchResult:{}, classResult: {in_threater:{}, coming_soon:{} }
-      const classResult = allResults.classResult;
-      const searchResult = allResults.searchResult;
-      return (name === 'search') ? searchResult : classResult[currSubmenuKeyName];
+      if( name !== 'search') {
+        // 'movie'/'music'/'book' 对应 Movie/Music/Book 组件
+        const currSubmenuObj = this.props.menusData.currSubmenuObj;// 所有二级标题(对象:{movie:{},music:{},book:{}} )
+        const currSubmenuKeyName = currSubmenuObj[name].keyName;// 当前二级标题
+        return this.props[name].classResult[currSubmenuKeyName];
+      } else {
+        // 'search' 对应 Search 组件
+        const currMenuKeyName = this.props.menusData.currMenuKeyName;// 当前一级标题
+        return this.props[currMenuKeyName].searchResult;
+      }
     }
   }
 }
