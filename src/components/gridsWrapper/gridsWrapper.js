@@ -30,16 +30,12 @@ class GridsWrapper extends Component {
     if (!result) {
       return null;
     }
-    if (result.resultList && result.resultList.length) {
-      return (
-        <div className="grids-container" style={{ margin: '0 auto', textAlign: 'center', paddingBottom: '10px'}}>
-          {this.createGrids()}
-          <Pagination simple defaultPageSize={rows * colums} total={result.totalNum} onChange={this.handlePageChange} />
-        </div>
-      );
-    } else {
-      return null
-    }
+    return (
+      <div className="grids-container" style={{ margin: '0 auto', textAlign: 'center', paddingBottom: '10px'}}>
+        { (result.resultList && result.resultList.length)?this.createGrids():null}
+        <Pagination simple defaultPageSize={rows * colums} total={result.totalNum} onChange={this.handlePageChange} />
+      </div>
+    );
   }
   createGrids() {
     // const colums = this.state.colums;
